@@ -1,0 +1,47 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <RootNamespace>System.Data.H2</RootNamespace>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Authors>Mikail Çetinkaya</Authors>
+    <Company />
+    <Description>ADO.NET for H2 DB and serve IKVM</Description>
+    <Copyright>2021</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/mikailcetinkaya/h2sharp</PackageProjectUrl>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageIconUrl />
+    <RepositoryUrl>https://github.com/mikailcetinkaya/h2sharp</RepositoryUrl>
+    <RepositoryType>Git</RepositoryType>
+    <PackageReleaseNotes>ADO.NET for H2 DB and serve IKVM</PackageReleaseNotes>
+    <PackageTags>ADO.NET for H2 DB and serve IKVM h2 sql in memory database for .NET 5.0 Unit Test with IKVM java jvm runtime</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="h2.NET50" Version="1.4.199.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="H2Command.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="H2CommandBuilder.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="H2Connection.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="H2DataAdapter.cs">
+      <SubType>Component</SubType>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="icon.png">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+  </ItemGroup>
+
+</Project>
