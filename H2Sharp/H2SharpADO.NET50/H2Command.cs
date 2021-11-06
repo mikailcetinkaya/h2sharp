@@ -239,7 +239,7 @@ namespace System.Data.H2
                 for (int index = 0; index < commandText.Length; ++index)
                 {
                     char c = commandText[index];
-                    if (!inQuote && c == '@')
+                    if (!inQuote && c == ':')
                     {
                         return true;
                     }
@@ -265,12 +265,13 @@ namespace System.Data.H2
             StringBuilder command = new StringBuilder();
             StringBuilder name = new StringBuilder();
             bool inQuote = false;
+            commandText += " ";
             for (int index = 0; index < commandText.Length; ++index)
             {
                 char c = commandText[index];
                 if (name.Length == 0)
                 {
-                    if (!inQuote && c == '@')
+                    if (!inQuote && c == ':')
                     {
                         name.Append(c);
                     }
@@ -293,7 +294,7 @@ namespace System.Data.H2
                     {
                         command.Append('?');
                         command.Append(c);
-                        string paramName = name.ToString();
+                        string paramName = name.ToString().Replace(":","");
                         name.Length = 0;
                         int paramIndex = collection.FindIndex(delegate(H2Parameter p) { return p.ParameterName == paramName; });
                         if (paramIndex == -1) { throw new H2Exception(string.Format("Missing Parameter: {0}", paramName)); }

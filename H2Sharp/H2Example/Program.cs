@@ -49,6 +49,12 @@ namespace H2Example
             var a = new H2Command("select 'a' from dual", connection).ExecuteScalar();
             Debug.Assert(((string)a).Equals("a"));
 
+            var p = new H2Command("select 'a' from dual where 1=:p0", connection);
+            java.lang.Integer iq = java.lang.Integer.decode("1");
+            p.Parameters.Add(new H2Parameter("px",iq));
+            var aa = p.ExecuteScalar();
+            Debug.Assert(((string)aa).Equals("a"));
+
             SimpleTest(connection, "int", 10, 11, 12);
             SimpleTest(connection, "bigint", (long)10, (long)11, (long)12);
             SimpleTest(connection, "smallint", (short)10, (short)11, (short)12);

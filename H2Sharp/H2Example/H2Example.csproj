@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="H2SharpADO.NET50" Version="1.0.0" />
+    <ProjectReference Include="..\H2SharpADO.NET50\H2SharpADO.NET50.csproj" />
   </ItemGroup>
 
 </Project>
