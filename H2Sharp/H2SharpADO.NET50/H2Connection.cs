@@ -246,5 +246,18 @@ namespace System.Data.H2
                 password = null;
             }
         }
+        public override DataTable GetSchema()
+        {
+            return new DataTable();
+        }
+        public override DataTable GetSchema(string collectionName)
+        {
+            return new DataTable();
+        }
+
+        public override DataTable GetSchema(string collectionName, string[] restrictionValues)
+        {
+            return new DataTable();
+        }
     }
 }
