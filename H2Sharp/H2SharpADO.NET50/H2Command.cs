@@ -26,10 +26,9 @@
  */
 #endregion
 
+using java.sql;
 using System.Collections.Generic;
 using System.Text;
-using java.sql;
-
 using DbCommand = System.Data.Common.DbCommand;
 using DbConnection = System.Data.Common.DbConnection;
 using DbDataReader = System.Data.Common.DbDataReader;
@@ -65,7 +64,7 @@ namespace System.Data.H2
             {
                 get { return mapping; }
             }
-        } 
+        }
         #endregion
 
         #region static
@@ -93,7 +92,7 @@ namespace System.Data.H2
         H2ParameterCollection collection;
         PreparedStatement statement;
         PreparedTemplate template;
-        UpdateRowSource updatedRowSource; 
+        UpdateRowSource updatedRowSource;
         bool disableNamedParameters;
         #endregion
 
@@ -116,7 +115,7 @@ namespace System.Data.H2
             this.connection = connection;
             this.collection = new H2ParameterCollection();
             this.updatedRowSource = UpdateRowSource.None;
-        } 
+        }
         #endregion
 
         #region properties
@@ -241,8 +240,8 @@ namespace System.Data.H2
                 for (int index = 0; index < commandText.Length; ++index)
                 {
                     char c = commandText[index];
-                    char c1= index+1< commandText.Length ? commandText[index] : ' ';
-                    if (!inQuote &&!blockComment&&!lineComment && c == ':')
+                    char c1 = index + 1 < commandText.Length ? commandText[index + 1] : ' ';
+                    if (!inQuote && !blockComment && !lineComment && c == ':')
                     {
                         return true;
                     }
@@ -250,7 +249,7 @@ namespace System.Data.H2
                     {
                         inQuote = !inQuote;
                     }
-                    else if (!inQuote && string.Concat( c , c1) == "/*")
+                    else if (!inQuote && string.Concat(c, c1) == "/*")
                     {
                         blockComment = true;
                     }
@@ -287,43 +286,45 @@ namespace System.Data.H2
             bool blockComment = false;
             bool lineComment = false;
             commandText += " ";
-            for (int index = 0; index < commandText.Length; ++index)
+            int index = 0;
+            while (index < commandText.Length)
             {
                 char c = commandText[index];
-                char c1 = index + 1 < commandText.Length ? commandText[index] : ' ';
+                char c1 = index + 1 < commandText.Length ? commandText[index + 1] : ' ';
+                index++;
                 if (name.Length == 0)
                 {
                     if (!inQuote && !blockComment && !lineComment && c == ':')
                     {
                         name.Append(c);
                     }
-                    else if (c == '\'' && !blockComment && !lineComment)
-                    {
-                        inQuote = !inQuote;
-                    }
                     else if (!inQuote && string.Concat(c, c1) == "/*")
                     {
                         blockComment = true;
+                        index++;
                     }
                     else if (!inQuote && string.Concat(c, c1) == "*/")
                     {
                         blockComment = false;
+                        index++;
                     }
                     else if (!inQuote && !blockComment && string.Concat(c, c1) == "--")
                     {
                         lineComment = true;
+                        index++;
                     }
                     else if (lineComment && string.Concat(c, c1) == "\r\n")
                     {
                         lineComment = false;
+                        index++;
                     }
                     else
                     {
-                        if (c == '\'')
+                        if (c == '\'' && !blockComment && !lineComment)
                         {
                             inQuote = !inQuote;
                         }
-                        if(!blockComment && !lineComment) command.Append(c);
+                        if (!blockComment && !lineComment) command.Append(c);
                     }
                 }
                 else
@@ -336,9 +337,9 @@ namespace System.Data.H2
                     {
                         command.Append('?');
                         command.Append(c);
-                        string paramName = name.ToString().Replace(":","");
+                        string paramName = name.ToString().Replace(":", "");
                         name.Length = 0;
-                        int paramIndex = collection.FindIndex(delegate(H2Parameter p) { return p.ParameterName == paramName; });
+                        int paramIndex = collection.FindIndex(delegate (H2Parameter p) { return p.ParameterName == paramName; });
                         if (paramIndex == -1) { throw new H2Exception(string.Format("Missing Parameter: {0}", paramName)); }
                         list.Add(paramIndex);
                     }
@@ -376,7 +377,7 @@ namespace System.Data.H2
             }
         }
 
-       
+
         private void EnsureStatment()
         {
             if (commandText == null) { throw new InvalidOperationException("must set CommandText"); }
@@ -433,19 +434,19 @@ namespace System.Data.H2
             EnsureStatment();
             try
             {
-				var low = CommandText.ToLower().Trim();
-				var iSemi = low.IndexOf(';');
-				if ((low.StartsWith("insert") || low.StartsWith("update")) && (iSemi < 0 || iSemi == low.Length - 1)) 
-				{
-					statement.executeUpdate();
-					return null;
-				}
-				else
-                		return new H2DataReader(connection, statement.executeQuery());
+                var low = CommandText.ToLower().Trim();
+                var iSemi = low.IndexOf(';');
+                if ((low.StartsWith("insert") || low.StartsWith("update")) && (iSemi < 0 || iSemi == low.Length - 1))
+                {
+                    statement.executeUpdate();
+                    return null;
+                }
+                else
+                    return new H2DataReader(connection, statement.executeQuery());
             }
-            catch(org.h2.jdbc.JdbcSQLException ex)
+            catch (org.h2.jdbc.JdbcSQLException ex)
             {
-				ex.printStackTrace();
+                ex.printStackTrace();
                 throw new H2Exception(ex);
             }
         }
@@ -524,7 +525,7 @@ namespace System.Data.H2
                     statement = null;
                 }
             }
-        } 
+        }
         #endregion
     }
 }

@@ -49,9 +49,9 @@ namespace H2Example
             var a = new H2Command("select 'a' from dual", connection).ExecuteScalar();
             Debug.Assert(((string)a).Equals("a"));
 
-            var p = new H2Command("select 'a' from dual where 1=:p0", connection);
+            var p = new H2Command("select /*fff*/-- ddd\r\n 'a' from dual where 1=:p0 and 2=2", connection);
             java.lang.Integer iq = java.lang.Integer.decode("1");
-            p.Parameters.Add(new H2Parameter("px",iq));
+            p.Parameters.Add(new H2Parameter("p0",iq));
             var aa = p.ExecuteScalar();
             Debug.Assert(((string)aa).Equals("a"));
 
