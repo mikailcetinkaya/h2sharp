@@ -236,16 +236,35 @@ namespace System.Data.H2
             {
                 if (disableNamedParameters) { return false; }
                 bool inQuote = false;
+                bool blockComment = false;
+                bool lineComment = false;
                 for (int index = 0; index < commandText.Length; ++index)
                 {
                     char c = commandText[index];
-                    if (!inQuote && c == ':')
+                    char c1= index+1< commandText.Length ? commandText[index] : ' ';
+                    if (!inQuote &&!blockComment&&!lineComment && c == ':')
                     {
                         return true;
                     }
-                    else if (c == '\'')
+                    else if (c == '\'' && !blockComment && !lineComment)
                     {
                         inQuote = !inQuote;
+                    }
+                    else if (!inQuote && string.Concat( c , c1) == "/*")
+                    {
+                        blockComment = true;
+                    }
+                    else if (!inQuote && string.Concat(c, c1) == "*/")
+                    {
+                        blockComment = false;
+                    }
+                    else if (!inQuote && !blockComment && string.Concat(c, c1) == "--")
+                    {
+                        lineComment = true;
+                    }
+                    else if (lineComment && string.Concat(c, c1) == "\r\n")
+                    {
+                        lineComment = false;
                     }
                 }
                 return false;
@@ -265,15 +284,38 @@ namespace System.Data.H2
             StringBuilder command = new StringBuilder();
             StringBuilder name = new StringBuilder();
             bool inQuote = false;
+            bool blockComment = false;
+            bool lineComment = false;
             commandText += " ";
             for (int index = 0; index < commandText.Length; ++index)
             {
                 char c = commandText[index];
+                char c1 = index + 1 < commandText.Length ? commandText[index] : ' ';
                 if (name.Length == 0)
                 {
-                    if (!inQuote && c == ':')
+                    if (!inQuote && !blockComment && !lineComment && c == ':')
                     {
                         name.Append(c);
+                    }
+                    else if (c == '\'' && !blockComment && !lineComment)
+                    {
+                        inQuote = !inQuote;
+                    }
+                    else if (!inQuote && string.Concat(c, c1) == "/*")
+                    {
+                        blockComment = true;
+                    }
+                    else if (!inQuote && string.Concat(c, c1) == "*/")
+                    {
+                        blockComment = false;
+                    }
+                    else if (!inQuote && !blockComment && string.Concat(c, c1) == "--")
+                    {
+                        lineComment = true;
+                    }
+                    else if (lineComment && string.Concat(c, c1) == "\r\n")
+                    {
+                        lineComment = false;
                     }
                     else
                     {
@@ -281,7 +323,7 @@ namespace System.Data.H2
                         {
                             inQuote = !inQuote;
                         }
-                        command.Append(c);
+                        if(!blockComment && !lineComment) command.Append(c);
                     }
                 }
                 else
