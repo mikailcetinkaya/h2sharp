@@ -235,35 +235,16 @@ namespace System.Data.H2
             {
                 if (disableNamedParameters) { return false; }
                 bool inQuote = false;
-                bool blockComment = false;
-                bool lineComment = false;
                 for (int index = 0; index < commandText.Length; ++index)
                 {
                     char c = commandText[index];
-                    char c1 = index + 1 < commandText.Length ? commandText[index + 1] : ' ';
-                    if (!inQuote && !blockComment && !lineComment && c == ':')
+                    if (!inQuote && c == ':')
                     {
                         return true;
                     }
-                    else if (c == '\'' && !blockComment && !lineComment)
+                    else if (c == '\'')
                     {
                         inQuote = !inQuote;
-                    }
-                    else if (!inQuote && string.Concat(c, c1) == "/*")
-                    {
-                        blockComment = true;
-                    }
-                    else if (!inQuote && string.Concat(c, c1) == "*/")
-                    {
-                        blockComment = false;
-                    }
-                    else if (!inQuote && !blockComment && string.Concat(c, c1) == "--")
-                    {
-                        lineComment = true;
-                    }
-                    else if (lineComment && string.Concat(c, c1) == "\r\n")
-                    {
-                        lineComment = false;
                     }
                 }
                 return false;
@@ -351,6 +332,7 @@ namespace System.Data.H2
         {
             int count = 0;
             int index = -1;
+
             while ((index = commandText.IndexOf('?', index + 1)) != -1)
             {
                 count++;
@@ -377,10 +359,58 @@ namespace System.Data.H2
             }
         }
 
+        protected void stripComments()
+        {
+            StringBuilder command = new StringBuilder();
+            bool inQuote = false;
+            bool blockComment = false;
+            bool lineComment = false;
+            commandText += " ";
+            int index = 0;
+            while (index < commandText.Length)
+            {
+                char c = commandText[index];
+                char c1 = index + 1 < commandText.Length ? commandText[index + 1] : ' ';
+                index++;
+                if (!inQuote &&!lineComment && string.Concat(c, c1) == "/*")
+                {
+                    blockComment = true;
+                    index++;
+                }
+                else if (!inQuote && string.Concat(c, c1) == "*/")
+                {
+                    blockComment = false;
+                    index++;
+                    command.Append(' ');
+                }
+                else if (!inQuote && !blockComment && string.Concat(c, c1) == "--")
+                {
+                    lineComment = true;
+                    index++;
+                }
+                else if (lineComment && string.Concat(c, c1) == "\r\n")
+                {
+                    lineComment = false;
+                    index++;
+                    command.Append(' ');
 
+                }
+                else
+                {
+                    if (c == '\'' && !blockComment && !lineComment)
+                    {
+                        inQuote = !inQuote;
+                    }
+                    if (!blockComment && !lineComment) command.Append(c);
+                }
+
+            }
+            commandText = command.ToString().Trim();
+        }
         private void EnsureStatment()
         {
             if (commandText == null) { throw new InvalidOperationException("must set CommandText"); }
+            stripComments();
             if (template == null || template.OldSql != commandText)
             {
                 lock (syncRoot)
@@ -483,6 +513,7 @@ namespace System.Data.H2
             CheckConnection();
             EnsureStatment();
             object result = null;
+            if (commandText?.Replace(" ", "").Replace("\r\n", "").Length == 0) return result;
             try
             {
                 ResultSet set = statement.executeQuery();

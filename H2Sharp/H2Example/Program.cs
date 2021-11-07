@@ -54,6 +54,82 @@ namespace H2Example
             p.Parameters.Add(new H2Parameter("p0",iq));
             var aa = p.ExecuteScalar();
             Debug.Assert(((string)aa).Equals("a"));
+            var pp = new H2Command( @"--CREATE SCHEMA ocn_btc
+                --    AUTHORIZATION postgres;
+
+                            --CREATE SCHEMA ocn_cfg
+                --AUTHORIZATION postgres;
+
+                            --CREATE SCHEMA ocn_clr
+                --AUTHORIZATION postgres;
+
+                            --CREATE SCHEMA ocn_iss
+                --AUTHORIZATION postgres;
+
+                            --CREATE SCHEMA ocn_acq
+                --AUTHORIZATION postgres;
+
+                            --CREATE SCHEMA ocn_trash
+                --AUTHORIZATION postgres;
+
+                            --CREATE SCHEMA ocn_cat
+                --AUTHORIZATION postgres;
+
+                            /*
+                            CREATE OR REPLACE FUNCTION OCN_CFG.FN_GET_LANGUAGE_TEXT (
+                               INPUT      IN VARCHAR,
+                               LANGUAGE   IN VARCHAR)
+                               RETURNS VARCHAR AS $L_LANGUAGE_TEXT$
+                            DECLARE
+                               L_LANGUAGE        VARCHAR := LANGUAGE;
+                               L_LANGUAGE_TEXT   VARCHAR ;
+                               L_DEFAULT_LANG    VARCHAR := 'en-US';
+                            BEGIN
+                               IF    INPUT IS NULL
+                                  OR LENGTH (TRIM (INPUT)) = 0
+                                  OR L_LANGUAGE IS NULL
+                                  OR LENGTH (TRIM (L_LANGUAGE)) = 0
+                               THEN
+                                  RETURN INPUT;
+                               END IF;
+
+                               IF POSITION (L_LANGUAGE || ':=' IN INPUT) = 0
+                               THEN
+                                  L_LANGUAGE := UPPER(SUBSTRING(L_LANGUAGE FROM 1 FOR 2));
+                                  IF POSITION (L_LANGUAGE|| ':=' IN INPUT) = 0
+                                  THEN
+                                      L_LANGUAGE := L_DEFAULT_LANG;
+                                      IF POSITION (L_LANGUAGE || ':=' IN INPUT) = 0
+                                      THEN
+                                        L_LANGUAGE := UPPER(SUBSTRING(L_LANGUAGE FROM 1 FOR 2));
+                                        IF POSITION (L_LANGUAGE|| ':=' IN INPUT) = 0
+                                        THEN
+                                             RETURN INPUT;
+                                        END IF;
+                                      END IF;
+                                  END IF;
+                               END IF;
+
+                               L_LANGUAGE_TEXT :=
+                                  SUBSTRING (INPUT FROM
+                                          POSITION (L_LANGUAGE || ':=' IN INPUT) + LENGTH (l_language) + 2);
+
+                               IF POSITION (':='  IN L_LANGUAGE_TEXT) > 0
+                               THEN
+                                  L_LANGUAGE_TEXT :=
+                                     SUBSTRING (L_LANGUAGE_TEXT FROM 1 FOR POSITION (';;' IN L_LANGUAGE_TEXT) - 1);
+                               END IF;
+
+                               RETURN L_LANGUAGE_TEXT;
+                            EXCEPTION
+                               WHEN OTHERS
+                               THEN
+                                  raise;
+                            END;
+                            $L_LANGUAGE_TEXT$ LANGUAGE plpgsql;
+                            */
+                            ",connection);
+            var aba = pp.ExecuteScalar();
 
             SimpleTest(connection, "int", 10, 11, 12);
             SimpleTest(connection, "bigint", (long)10, (long)11, (long)12);
