@@ -16,9 +16,9 @@
     <RepositoryType>Git</RepositoryType>
     <PackageReleaseNotes>ADO.NET for H2 DB and serve IKVM</PackageReleaseNotes>
     <PackageTags>ADO.NET for H2 DB and serve IKVM h2 sql in memory database for .NET 5.0 Unit Test with IKVM java jvm runtime</PackageTags>
-    <AssemblyVersion>1.0.3.1</AssemblyVersion>
-    <FileVersion>1.0.3.1</FileVersion>
-    <Version>1.0.3.1</Version>
+    <AssemblyVersion>1.0.3.3</AssemblyVersion>
+    <FileVersion>1.0.3.3</FileVersion>
+    <Version>1.0.3.3</Version>
   </PropertyGroup>
 
   <ItemGroup>
