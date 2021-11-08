@@ -331,12 +331,22 @@ namespace System.Data.H2
         private PreparedTemplate CreateIndexTemplate()
         {
             int count = 0;
-            int index = -1;
-
-            while ((index = commandText.IndexOf('?', index + 1)) != -1)
+            int index = 0;
+            bool inQuote = false;
+            while (index < commandText.Length)
             {
-                count++;
+                char c = commandText[index];
+                index++;
+                if (c == '\'')
+                {
+                    inQuote = !inQuote;
+                }
+                if (c == '?' && !inQuote)
+                {
+                    count++;
+                }
             }
+
             return new PreparedTemplate(commandText, commandText, CreateRange(count));
         }
         private void CreateStatement()
