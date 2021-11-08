@@ -319,9 +319,13 @@ namespace System.Data.H2
                         command.Append('?');
                         command.Append(c);
                         string paramName = name.ToString().Replace(":", "");
-                        name.Length = 0;
                         int paramIndex = collection.FindIndex(delegate (H2Parameter p) { return p.ParameterName == paramName; });
-                        if (paramIndex == -1) { throw new H2Exception(string.Format("Missing Parameter: {0}", paramName)); }
+                        if (paramIndex == -1) {
+                            paramName = name.ToString();
+                            paramIndex = collection.FindIndex(delegate (H2Parameter p) { return p.ParameterName == paramName; });
+                            if (paramIndex == -1) { throw new H2Exception(string.Format("Missing Parameter: {0}", paramName)); }
+                        }
+                        name.Length = 0;
                         list.Add(paramIndex);
                     }
                 }
