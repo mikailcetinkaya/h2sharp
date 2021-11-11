@@ -38,6 +38,7 @@ namespace System.Data.H2
         static H2Connection()
         {
             org.h2.Driver.load();
+            org.h2.tools.Server server = org.h2.tools.Server.createWebServer().start();
         }
 
         string connectionString;
@@ -49,7 +50,7 @@ namespace System.Data.H2
 
         public H2Connection(){}
         public H2Connection(string connectionString)
-        {
+        {           
             this.connectionString = connectionString;
         }
         public H2Connection(string connectionString, string userName, string password)

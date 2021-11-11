@@ -11,7 +11,7 @@ namespace H2Example
         {
             Console.WriteLine("Hello World!");
 
-            var connection = new H2Connection("jdbc:h2:mem:test");
+            var connection = new H2Connection("jdbc:h2:mem:db1;DB_CLOSE_DELAY=-1;");
             connection.Open();
             new H2Command("create table list (item integer primary key, description varchar(256), value integer)", connection).ExecuteNonQuery();
             new H2Command("insert into list values (1, 'First Item', 10)", connection).ExecuteNonQuery();
