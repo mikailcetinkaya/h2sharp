@@ -38,7 +38,8 @@ namespace System.Data.H2
         static H2Connection()
         {
             org.h2.Driver.load();
-            org.h2.tools.Server server = org.h2.tools.Server.createWebServer().start();
+            _ = org.h2.tools.Server.createWebServer().start();
+            org.h2.tools.Server.openBrowser("http://localhost:8082");
         }
 
         string connectionString;
