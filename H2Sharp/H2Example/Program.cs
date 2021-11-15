@@ -43,6 +43,10 @@ namespace H2Example
             var count = new H2Command("select count(*) from list", connection).ExecuteScalar();
             Debug.Assert(((long)count).Equals(3));
 
+            // same query twice for template dictionary control
+            var countq = new H2Command("select count(*) from list", connection).ExecuteScalar();
+            Debug.Assert(((long)countq).Equals(3));
+
             var one = new H2Command("select 1 from dual", connection).ExecuteScalar();
             Debug.Assert(((int)one).Equals(1));
 

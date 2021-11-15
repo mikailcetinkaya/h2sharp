@@ -330,6 +330,7 @@ namespace System.Data.H2
                     }
                 }
             }
+            commandText = commandText.Trim().Trim();
             return new PreparedTemplate(commandText, command.ToString(), list.ToArray());
         }
         private PreparedTemplate CreateIndexTemplate()
@@ -419,7 +420,7 @@ namespace System.Data.H2
                 }
 
             }
-            commandText = command.ToString().Trim();
+            commandText = command.ToString().Trim().Trim();
         }
         private void EnsureStatment()
         {
