@@ -58,6 +58,15 @@ namespace H2Example
             p.Parameters.Add(new H2Parameter("p0", iq));
             var aa = p.ExecuteScalar();
             Debug.Assert(((string)aa).Equals("a"));
+
+            // same query twice for template dictionary control
+            var pd = new H2Command("select /*fff*/-- ddd\r\n 'a' from dual where 1=:p0 and 2=2", connection);
+            java.lang.Integer iqd = java.lang.Integer.decode("1");
+            p.Parameters.Add(new H2Parameter("p0", iqd));
+            var aad= p.ExecuteScalar();
+            Debug.Assert(((string)aad).Equals("a"));
+
+
             var pp = new H2Command(@"--CREATE SCHEMA ocn_btc
                 --    AUTHORIZATION postgres;
 
