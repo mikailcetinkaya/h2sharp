@@ -362,7 +362,7 @@ namespace System.Data.H2
             }
             try
             {
-                statement = connection.connection.prepareStatement(template.TrueSql);
+                statement = connection.connection.prepareStatement(template.TrueSql, ResultSet.TYPE_SCROLL_INSENSITIVE,ResultSet.CONCUR_UPDATABLE);
             }
             catch (org.h2.jdbc.JdbcSQLException ex)
             {

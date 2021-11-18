@@ -47,6 +47,18 @@ namespace H2Example
             var countq = new H2Command("select count(*) from list", connection).ExecuteScalar();
             Debug.Assert(((long)countq).Equals(3));
 
+            // DBDataReader test
+            var reader = new H2Command("select * from list", connection).ExecuteReader();
+
+            if (reader.HasRows)
+            {
+                while (reader.Read())
+                {
+                    Console.WriteLine("{0}\t{1}\t{2}", reader.GetInt32(0),
+                        reader.GetString(1),reader.GetInt64(2));
+                }
+            }
+
             var one = new H2Command("select 1 from dual", connection).ExecuteScalar();
             Debug.Assert(((int)one).Equals(1));
 
@@ -63,7 +75,7 @@ namespace H2Example
             var pd = new H2Command("select /*fff*/-- ddd\r\n 'a' from dual where 1=:p0 and 2=2", connection);
             java.lang.Integer iqd = java.lang.Integer.decode("1");
             p.Parameters.Add(new H2Parameter("p0", iqd));
-            var aad= p.ExecuteScalar();
+            var aad = p.ExecuteScalar();
             Debug.Assert(((string)aad).Equals("a"));
 
 

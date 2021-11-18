@@ -26,9 +26,9 @@
  */
 #endregion
 
-using System.Data.Common;
 using java.sql;
 using System.Collections.Generic;
+using System.Data.Common;
 
 
 namespace System.Data.H2
@@ -40,17 +40,17 @@ namespace System.Data.H2
         private static int ConvertOrdnal(int ordinal)
         {
             if (ordinal == int.MaxValue) { throw new H2Exception("invalid ordinal"); }
-            return ordinal+1;
+            return ordinal + 1;
         }
 
-		private H2Connection connection;
+        private H2Connection connection;
         private ResultSet set;
         private ResultSetMetaData meta;
 
         internal H2DataReader(H2Connection connection, ResultSet set)
         {
             this.set = set;
-			this.connection = connection;
+            this.connection = connection;
         }
 
 
@@ -71,15 +71,26 @@ namespace System.Data.H2
         }
         public override bool NextResult()
         {
-            throw new NotImplementedException();
+            return set.next();
         }
         public override int RecordsAffected
         {
-            get { throw new NotImplementedException(); }
+            get
+            {
+                int mark = set.getRow();
+                set.last();
+                int rowCount = set.getRow();
+                set.absolute(mark);
+                return rowCount;
+            }
         }
         public override bool HasRows
         {
-            get { throw new NotImplementedException(); }
+            get {
+                bool r= set.next();
+                set.previous();
+                return r;
+            }
         }
         public override bool IsClosed
         {
@@ -87,11 +98,11 @@ namespace System.Data.H2
         }
         public override object this[string name]
         {
-            get { return set.getObject(name); }
+            get { return GetValue(GetOrdinal(name)); }
         }
         public override object this[int ordinal]
         {
-            get { return set.getObject(ConvertOrdnal(ordinal)); }
+            get { return GetValue(ordinal); }
         }
         public override int Depth
         {
@@ -119,15 +130,19 @@ namespace System.Data.H2
         }
         public override char GetChar(int ordinal)
         {
-            throw new NotImplementedException();
+            return set.getString(ConvertOrdnal(ordinal))[0];
         }
         public override long GetChars(int ordinal, long dataOffset, char[] buffer, int bufferOffset, int length)
         {
-            throw new NotImplementedException();
+            String v = GetString(ordinal);
+            long v1 = dataOffset + length > v.Length ? v.Length - dataOffset : length;
+            char[] vs = v.ToCharArray(Convert.ToInt32(dataOffset), Convert.ToInt32(v1));
+            vs.CopyTo(buffer, bufferOffset);
+            return v1;
         }
         public override string GetDataTypeName(int ordinal)
         {
-            throw new NotImplementedException();
+            return Meta.getColumnTypeName(ConvertOrdnal(ordinal));
         }
         public override DateTime GetDateTime(int ordinal)
         {
@@ -137,7 +152,7 @@ namespace System.Data.H2
         static readonly DateTime UTCStart = new DateTime(1970, 1, 1);
         public override decimal GetDecimal(int ordinal)
         {
-            throw new NotImplementedException();
+            return ((decimal)set.getObject(ConvertOrdnal(ordinal)));
         }
         public override double GetDouble(int ordinal)
         {
@@ -145,7 +160,7 @@ namespace System.Data.H2
         }
         public override System.Collections.IEnumerator GetEnumerator()
         {
-            throw new NotImplementedException();
+            return this.GetEnumerator();
         }
 
         Type[] types;
@@ -170,7 +185,7 @@ namespace System.Data.H2
         }
         public override Guid GetGuid(int ordinal)
         {
-            throw new NotImplementedException();
+            return new Guid(GetString(ordinal));
         }
         public override short GetInt16(int ordinal)
         {
@@ -192,9 +207,9 @@ namespace System.Data.H2
         }
         public override int GetOrdinal(string name)
         {
-            for (int index = 0; index < Meta.getColumnCount(); ++index)
+            for (int index = 1; index <= Meta.getColumnCount(); ++index)
             {
-                if (Meta.getColumnName(index) == name)
+                if (Meta.getColumnName(index).ToUpper() == name.ToUpper())
                 {
                     return index;
                 }
@@ -203,88 +218,88 @@ namespace System.Data.H2
         }
         public override DataTable GetSchemaTable()
         {
-			/*
+            /*
 			JDBC reference :
 			http://java.sun.com/j2se/1.5.0/docs/api/java/sql/ResultSetMetaData.html
 			
 			ADO.NET reference :
 			http://msdn.microsoft.com/en-us/library/system.data.sqlclient.sqldatareader.getschematable.aspx
 			*/
-			var table = new DataTable();
-			var ColumnName = table.Columns.Add("ColumnName", typeof(String));
-			var ColumnOrdinal = table.Columns.Add("ColumnOrdinal", typeof(Int32));
-			var ColumnSize = table.Columns.Add("ColumnSize", typeof(Int32));
-			var NumericPrecision = table.Columns.Add("NumericPrecision", typeof(Int32));
-			var NumericScale = table.Columns.Add("NumericScale", typeof(Int32));
-			var IsUnique = table.Columns.Add("IsUnique", typeof(bool));
-			var IsKey = table.Columns.Add("IsKey", typeof(bool));
-			var BaseServerName = table.Columns.Add("BaseServerName", typeof(String));
-			var BaseCatalogName = table.Columns.Add("BaseCatalogName", typeof(String));
-			var BaseColumnName = table.Columns.Add("BaseColumnName", typeof(String));
-			var BaseSchemaName = table.Columns.Add("BaseSchemaName", typeof(String));
-			var BaseTableName = table.Columns.Add("BaseTableName", typeof(String));
-			var DataType = table.Columns.Add("DataType", typeof(Type));
-			var AllowDBNull = table.Columns.Add("AllowDBNull", typeof(bool));
-			var ProviderType = table.Columns.Add("ProviderType");
-			var IsAliased = table.Columns.Add("IsAliased", typeof(bool));
-			var IsExpression = table.Columns.Add("IsExpression", typeof(bool));
-			var IsIdentity = table.Columns.Add("IsIdentity", typeof(bool));
-			var IsAutoIncrement = table.Columns.Add("IsAutoIncrement", typeof(bool));
-			var IsRowVersion = table.Columns.Add("IsRowVersion", typeof(bool));
-			var IsHidden = table.Columns.Add("IsHidden", typeof(bool));
-			var IsLong = table.Columns.Add("IsLong", typeof(bool));
-			var IsReadOnly = table.Columns.Add("IsReadOnly", typeof(bool));
-			var ProviderSpecificDataType = table.Columns.Add("ProviderSpecificDataType");
-			var DataTypeName = table.Columns.Add("DataTypeName", typeof(String));
+            var table = new DataTable();
+            var ColumnName = table.Columns.Add("ColumnName", typeof(String));
+            var ColumnOrdinal = table.Columns.Add("ColumnOrdinal", typeof(Int32));
+            var ColumnSize = table.Columns.Add("ColumnSize", typeof(Int32));
+            var NumericPrecision = table.Columns.Add("NumericPrecision", typeof(Int32));
+            var NumericScale = table.Columns.Add("NumericScale", typeof(Int32));
+            var IsUnique = table.Columns.Add("IsUnique", typeof(bool));
+            var IsKey = table.Columns.Add("IsKey", typeof(bool));
+            var BaseServerName = table.Columns.Add("BaseServerName", typeof(String));
+            var BaseCatalogName = table.Columns.Add("BaseCatalogName", typeof(String));
+            var BaseColumnName = table.Columns.Add("BaseColumnName", typeof(String));
+            var BaseSchemaName = table.Columns.Add("BaseSchemaName", typeof(String));
+            var BaseTableName = table.Columns.Add("BaseTableName", typeof(String));
+            var DataType = table.Columns.Add("DataType", typeof(Type));
+            var AllowDBNull = table.Columns.Add("AllowDBNull", typeof(bool));
+            var ProviderType = table.Columns.Add("ProviderType");
+            var IsAliased = table.Columns.Add("IsAliased", typeof(bool));
+            var IsExpression = table.Columns.Add("IsExpression", typeof(bool));
+            var IsIdentity = table.Columns.Add("IsIdentity", typeof(bool));
+            var IsAutoIncrement = table.Columns.Add("IsAutoIncrement", typeof(bool));
+            var IsRowVersion = table.Columns.Add("IsRowVersion", typeof(bool));
+            var IsHidden = table.Columns.Add("IsHidden", typeof(bool));
+            var IsLong = table.Columns.Add("IsLong", typeof(bool));
+            var IsReadOnly = table.Columns.Add("IsReadOnly", typeof(bool));
+            var ProviderSpecificDataType = table.Columns.Add("ProviderSpecificDataType");
+            var DataTypeName = table.Columns.Add("DataTypeName", typeof(String));
             var DbType = table.Columns.Add("DbType", typeof(DbType)); // not standard !!!
-			//var XmlSchemaCollectionDatabase = table.Columns.Add("XmlSchemaCollectionDatabase");
-			//var XmlSchemaCollectionOwningSchema = table.Columns.Add("XmlSchemaCollectionOwningSchema");
-			//var XmlSchemaCollectionName = table.Columns.Add("XmlSchemaCollectionName");
-			
-			//var dbMeta = connection.connection.getMetaData();
-			var tablesPksAndUniques = new Dictionary<String, KeyValuePair<HashSet<String>, HashSet<String>>>();
-			var meta = Meta;
-			
-			var nCols = meta.getColumnCount();
-			table.MinimumCapacity = nCols;
-			for (int iCol = 1; iCol <= nCols; iCol++) 
-			{
-				// Beware : iCol starts at 1 (JDBC convention)
-				var row = table.NewRow();
-				var name = meta.getColumnName(iCol);	
-				var label = meta.getColumnLabel(iCol);
-				var tableName = meta.getTableName(iCol);
-				
-				KeyValuePair<HashSet<String>, HashSet<String>> pksAndUniques;
-				if (!tablesPksAndUniques.TryGetValue(tableName, out pksAndUniques)) {
-					pksAndUniques = new KeyValuePair<HashSet<string>, HashSet<string>>(
-						connection.GetPrimaryKeysColumns(tableName),
-						connection.GetUniqueColumns(tableName)
-					);
-				}
-				
-				row[ColumnName] = label != null ? label : name;
-				row[ColumnOrdinal] = iCol - 1;
-				row[BaseColumnName] = name;
-				row[BaseSchemaName] = meta.getSchemaName(iCol);
-				row[BaseTableName] = tableName;
-				row[	ColumnSize] = meta.getColumnDisplaySize(iCol);
-				row[IsReadOnly] = meta.isReadOnly(iCol);
-				row[IsKey] = pksAndUniques.Key.Contains(name);
-				row[IsUnique] = pksAndUniques.Value.Contains(name);
-				row[DataTypeName] = meta.getColumnTypeName(iCol); // TODO check this !
-				row[NumericPrecision] = meta.getPrecision(iCol);
-				row[NumericScale] = meta.getScale(iCol);
-				var jdbcType = meta.getColumnType(iCol);
-				var type = H2Helper.GetType(jdbcType);
+                                                                      //var XmlSchemaCollectionDatabase = table.Columns.Add("XmlSchemaCollectionDatabase");
+                                                                      //var XmlSchemaCollectionOwningSchema = table.Columns.Add("XmlSchemaCollectionOwningSchema");
+                                                                      //var XmlSchemaCollectionName = table.Columns.Add("XmlSchemaCollectionName");
+
+            //var dbMeta = connection.connection.getMetaData();
+            var tablesPksAndUniques = new Dictionary<String, KeyValuePair<HashSet<String>, HashSet<String>>>();
+            var meta = Meta;
+
+            var nCols = meta.getColumnCount();
+            table.MinimumCapacity = nCols;
+            for (int iCol = 1; iCol <= nCols; iCol++)
+            {
+                // Beware : iCol starts at 1 (JDBC convention)
+                var row = table.NewRow();
+                var name = meta.getColumnName(iCol);
+                var label = meta.getColumnLabel(iCol);
+                var tableName = meta.getTableName(iCol);
+
+                KeyValuePair<HashSet<String>, HashSet<String>> pksAndUniques;
+                if (!tablesPksAndUniques.TryGetValue(tableName, out pksAndUniques))
+                {
+                    pksAndUniques = new KeyValuePair<HashSet<string>, HashSet<string>>(
+                        connection.GetPrimaryKeysColumns(tableName),
+                        connection.GetUniqueColumns(tableName)
+                    );
+                }
+
+                row[ColumnName] = label != null ? label : name;
+                row[ColumnOrdinal] = iCol - 1;
+                row[BaseColumnName] = name;
+                row[BaseSchemaName] = meta.getSchemaName(iCol);
+                row[BaseTableName] = tableName;
+                row[ColumnSize] = meta.getColumnDisplaySize(iCol);
+                row[IsReadOnly] = meta.isReadOnly(iCol);
+                row[IsKey] = pksAndUniques.Key.Contains(name);
+                row[IsUnique] = pksAndUniques.Value.Contains(name);
+                row[DataTypeName] = meta.getColumnTypeName(iCol); // TODO check this !
+                row[NumericPrecision] = meta.getPrecision(iCol);
+                row[NumericScale] = meta.getScale(iCol);
+                var jdbcType = meta.getColumnType(iCol);
+                var type = H2Helper.GetType(jdbcType);
                 var dbType = H2Helper.GetDbType(jdbcType);
                 row[DataType] = type;
                 row[DbType] = dbType;
-				row[AllowDBNull] = meta.isNullable(iCol);
-				table.Rows.Add(row);
-			}
-			return table;
-            //throw new NotImplementedException();
+                row[AllowDBNull] = meta.isNullable(iCol);
+                table.Rows.Add(row);
+            }
+            return table;
         }
         public override string GetString(int ordinal)
         {
@@ -329,11 +344,13 @@ namespace System.Data.H2
         }
 
     }
-	static class DatabaseMetaDataExtensions {
-		
-		public static Dictionary<String, int> GetColumnTypeCodes(this H2Connection connection, String tableName) {
-			// Reference : http://java.sun.com/javase/6/docs/api/java/sql/DatabaseMetaData.html#getPrimaryKeys(java.lang.String, java.lang.String, java.lang.String)
-			/*try {
+    static class DatabaseMetaDataExtensions
+    {
+
+        public static Dictionary<String, int> GetColumnTypeCodes(this H2Connection connection, String tableName)
+        {
+            // Reference : http://java.sun.com/javase/6/docs/api/java/sql/DatabaseMetaData.html#getPrimaryKeys(java.lang.String, java.lang.String, java.lang.String)
+            /*try {
 				var dbMeta = connection.connection.getMetaData();
 				var res = dbMeta != null ? dbMeta.getColumns(null, null, tableName, null) : null;
 				if (res != null) {
@@ -348,11 +365,12 @@ namespace System.Data.H2
 			} catch (Exception ex) { 
 				Console.WriteLine(ex);
 			}*/
-			return connection.ReadMap<int>("select column_name, data_type from INFORMATION_SCHEMA.COLUMNS where upper(table_name) = '" + tableName.ToUpper() + "'");
-		}		
-		public static HashSet<String> GetPrimaryKeysColumns(this H2Connection connection, String tableName) {
-			// Reference : http://java.sun.com/javase/6/docs/api/java/sql/DatabaseMetaData.html#getPrimaryKeys(java.lang.String, java.lang.String, java.lang.String)
-			/*try {
+            return connection.ReadMap<int>("select column_name, data_type from INFORMATION_SCHEMA.COLUMNS where upper(table_name) = '" + tableName.ToUpper() + "'");
+        }
+        public static HashSet<String> GetPrimaryKeysColumns(this H2Connection connection, String tableName)
+        {
+            // Reference : http://java.sun.com/javase/6/docs/api/java/sql/DatabaseMetaData.html#getPrimaryKeys(java.lang.String, java.lang.String, java.lang.String)
+            /*try {
 				var dbMeta = connection.connection.getMetaData();
 				var res = dbMeta != null ? dbMeta.getPrimaryKeys(null, null, tableName) : null;
 				if (res != null) {
@@ -366,16 +384,18 @@ namespace System.Data.H2
 			} catch (Exception ex) { 
 				Console.WriteLine(ex);
 			}*/
-			var ret = new HashSet<String>();
-			foreach (var list in connection.ReadStrings("select column_list from INFORMATION_SCHEMA.CONSTRAINTS where constraint_type = 'PRIMARY KEY' and upper(table_name) = '" + tableName.ToUpper() + "' ")) {
-				foreach (var col in list.Split(','))
-					ret.Add(col.Trim());
-			}
-			return ret;
-		}
-		public static HashSet<String> GetUniqueColumns(this H2Connection connection, String tableName) {
-			// Reference : http://java.sun.com/javase/6/docs/api/java/sql/DatabaseMetaData.html#getIndexInfo(java.lang.String, java.lang.String, java.lang.String, boolean, boolean)
-			/*try {
+            var ret = new HashSet<String>();
+            foreach (var list in connection.ReadStrings("select column_list from INFORMATION_SCHEMA.CONSTRAINTS where constraint_type = 'PRIMARY KEY' and upper(table_name) = '" + tableName.ToUpper() + "' "))
+            {
+                foreach (var col in list.Split(','))
+                    ret.Add(col.Trim());
+            }
+            return ret;
+        }
+        public static HashSet<String> GetUniqueColumns(this H2Connection connection, String tableName)
+        {
+            // Reference : http://java.sun.com/javase/6/docs/api/java/sql/DatabaseMetaData.html#getIndexInfo(java.lang.String, java.lang.String, java.lang.String, boolean, boolean)
+            /*try {
 				var dbMeta = connection.connection.getMetaData();
 				var res = dbMeta != null ? dbMeta.getIndexInfo(null, null, tableName, true, false) : null;
 				if (res != null) {
@@ -389,7 +409,7 @@ namespace System.Data.H2
 			} catch (Exception ex) { 
 				Console.WriteLine(ex);
 			}*/
-			return new HashSet<String>(connection.ReadStrings("select column_list from INFORMATION_SCHEMA.CONSTRAINTS where constraint_type = 'UNIQUE' and upper(table_name) = '" + tableName.ToUpper() + "'"));
-		}	
-	}
+            return new HashSet<String>(connection.ReadStrings("select column_list from INFORMATION_SCHEMA.CONSTRAINTS where constraint_type = 'UNIQUE' and upper(table_name) = '" + tableName.ToUpper() + "'"));
+        }
+    }
 }
