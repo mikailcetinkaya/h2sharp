@@ -211,7 +211,7 @@ namespace System.Data.H2
             {
                 if (Meta.getColumnName(index).ToUpper() == name.ToUpper())
                 {
-                    return index;
+                    return index-1;
                 }
             }
             return -1;

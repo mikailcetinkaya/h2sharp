@@ -54,8 +54,8 @@ namespace H2Example
             {
                 while (reader.Read())
                 {
-                    Console.WriteLine("{0}\t{1}\t{2}", reader.GetInt32(0),
-                        reader.GetString(1),reader.GetInt64(2));
+                    Console.WriteLine("{0}\t{1}\t{2}", reader["item"],
+                        reader["description"],reader["value"]);
                 }
             }
 
