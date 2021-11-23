@@ -46,11 +46,13 @@ namespace System.Data.H2
             private string oldSql;
             private string trueSql;
             private int[] mapping;
-            public PreparedTemplate(string oldSql, string trueSql, int[] mapping)
+            public int paramCount { get; set; }
+            public PreparedTemplate(string oldSql, string trueSql, int[] mapping,int paramCount)
             {
                 this.oldSql = oldSql;
                 this.trueSql = trueSql;
                 this.mapping = mapping;
+                this.paramCount = paramCount;
             }
             public string OldSql
             {
@@ -268,6 +270,8 @@ namespace System.Data.H2
             bool lineComment = false;
             commandText += " ";
             int index = 0;
+            int paramCount = 0;
+            int lastParamCount = 0;
             while (index < commandText.Length)
             {
                 char c = commandText[index];
@@ -306,6 +310,11 @@ namespace System.Data.H2
                             inQuote = !inQuote;
                         }
                         if (!blockComment && !lineComment) command.Append(c);
+                        if (!inQuote && !blockComment && !lineComment && c == ';')
+                        {
+                            lastParamCount = paramCount;
+                            paramCount = 0;
+                        }
                     }
                 }
                 else
@@ -316,6 +325,7 @@ namespace System.Data.H2
                     }
                     else
                     {
+                        paramCount++;
                         command.Append('?');
                         command.Append(c);
                         string paramName = name.ToString().Replace(":", "");
@@ -331,11 +341,13 @@ namespace System.Data.H2
                 }
             }
             commandText = commandText.Trim().Trim();
-            return new PreparedTemplate(commandText, command.ToString(), list.ToArray());
+            return new PreparedTemplate(commandText, command.ToString(), list.ToArray(),lastParamCount);
         }
         private PreparedTemplate CreateIndexTemplate()
         {
             int count = 0;
+            int paramCount = 0;
+            int lastParamCount = 0;
             int index = 0;
             bool inQuote = false;
             while (index < commandText.Length)
@@ -348,11 +360,17 @@ namespace System.Data.H2
                 }
                 if (c == '?' && !inQuote)
                 {
+                    paramCount++;
                     count++;
+                }
+                if (c == ';' && !inQuote)
+                {
+                    lastParamCount = paramCount;
+                    paramCount=0;
                 }
             }
 
-            return new PreparedTemplate(commandText, commandText, CreateRange(count));
+            return new PreparedTemplate(commandText, commandText, CreateRange(count),lastParamCount);
         }
         private void CreateStatement()
         {
@@ -516,7 +534,10 @@ namespace System.Data.H2
             EnsureStatment();
             try
             {
-                return statement.executeUpdate();
+                int ret=statement.executeUpdate();
+                if (ret == 1 && template.paramCount > 0 && template.Mapping.Length > template.paramCount)
+                    return (int)Math.Ceiling(template.Mapping.Length * 1.0 / template.paramCount);
+                return ret;
             }
             catch (org.h2.jdbc.JdbcSQLException ex)
             {

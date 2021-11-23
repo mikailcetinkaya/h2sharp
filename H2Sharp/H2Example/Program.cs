@@ -65,11 +65,37 @@ namespace H2Example
             var a = new H2Command("select 'a' from dual", connection).ExecuteScalar();
             Debug.Assert(((string)a).Equals("a"));
 
-            var p = new H2Command("select /*fff*/-- ddd\r\n 'a' from dual where 1=:p0 and 2=2", connection);
+            var p = new H2Command("select /*fff*/-- ddd\r\n 'a' from dual where 1=:p0 and 2=2;select /*fff*/-- ddd\r\n 'a' from dual where 1=:p0 and 2=2;", connection);
             java.lang.Integer iq = java.lang.Integer.decode("1");
             p.Parameters.Add(new H2Parameter("p0", iq));
             var aa = p.ExecuteScalar();
             Debug.Assert(((string)aa).Equals("a"));
+
+            var hod = new H2Command(@"CREATE MEMORY TABLE CFG_TRACE_LOG(
+                    GUID NUMBER(20, 0) NOT NULL,
+                    MBR_ID NUMBER(5, 0),
+                    TABLE_NAME VARCHAR2(60),
+                    CLASS_NAME VARCHAR2(150),
+                    KEY_COLUMN VARCHAR2(100),
+                    KEY_NAME VARCHAR2(150),
+                    KEY VARCHAR2(100),
+                    TYPE VARCHAR2(1),
+                    CHANNEL_CODE VARCHAR2(3) NOT NULL,
+                    USER_CODE VARCHAR2(64) NOT NULL,
+                    ACTION_DATE NUMBER(10, 0),
+                    ACTION_TIME NUMBER(10, 0),
+                    CORRELATION_ID VARCHAR2(32)
+                ); ", connection).ExecuteNonQuery();
+            var ho = new H2Command("INSERT INTO CFG_TRACE_LOG (MBR_ID, TABLE_NAME, CLASS_NAME, KEY_COLUMN, KEY_NAME, KEY, TYPE, CHANNEL_CODE, USER_CODE, ACTION_DATE, ACTION_TIME, CORRELATION_ID, GUID) VALUES (:p0, :p1, :p2, :p3, :p4, :p5, :p6, :p7, :p8, :p9, :p10, :p11, :p12);INSERT INTO CFG_TRACE_LOG (MBR_ID, TABLE_NAME, CLASS_NAME, KEY_COLUMN, KEY_NAME, KEY, TYPE, CHANNEL_CODE, USER_CODE, ACTION_DATE, ACTION_TIME, CORRELATION_ID, GUID) VALUES (:p13, 55, :p15, :p16, :p17, :p18, :p19, :p20, :p21, :p22, :p23, :p24, 33)", connection);
+            java.lang.Integer iqdx = java.lang.Integer.decode("1");
+            for (int i = 0; i < 26; i++)
+            {
+                ho.Parameters.Add(new H2Parameter("p"+i.ToString(), iqdx));
+            }
+
+            var ss = ho.ExecuteNonQuery();
+            Debug.Assert(ss.Equals(2),"parameterized fail");
+
 
             // same query twice for template dictionary control
             var pd = new H2Command("select /*fff*/-- ddd\r\n 'a' from dual where 1=:p0 and 2=2", connection);

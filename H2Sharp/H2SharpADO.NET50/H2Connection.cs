@@ -39,7 +39,8 @@ namespace System.Data.H2
         {
             org.h2.Driver.load();
             _ = org.h2.tools.Server.createWebServer().start();
-            org.h2.tools.Server.openBrowser("http://localhost:8082");
+            org.h2.tools.Server.createTcpServer().start();
+            //org.h2.tools.Server.openBrowser("http://localhost:8082");
         }
 
         string connectionString;
