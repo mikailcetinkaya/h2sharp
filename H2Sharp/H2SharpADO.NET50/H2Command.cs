@@ -328,6 +328,11 @@ namespace System.Data.H2
                         paramCount++;
                         command.Append('?');
                         command.Append(c);
+                        if(c == ';')
+                        {
+                            lastParamCount = paramCount;
+                            paramCount = 0;
+                        }
                         string paramName = name.ToString().Replace(":", "");
                         int paramIndex = collection.FindIndex(delegate (H2Parameter p) { return p.ParameterName == paramName; });
                         if (paramIndex == -1) {
